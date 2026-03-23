@@ -94,7 +94,7 @@ button {
 
 button:hover {
     transform: scale(1.06);
-    box-shadow: 0 6px 24px rgba(255, 200, 0, 0,5);
+    box-shadow: 0 6px 24px rgba(255, 200, 0, 0.5);
 }
 
 button:active {

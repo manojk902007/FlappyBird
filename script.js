@@ -1,4 +1,4 @@
-const canvas = document.getElementById('gameCanavas');
+const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 // Canvas size - responsive
@@ -74,7 +74,7 @@ const bird = {
         ctx.arc(r * 0.35, -r * 0.3, r * 0.28, 0, Math.PI * 2);
         ctx.fillStyle = '#fff';
         ctx.fill();
-        ctx.biginPath();
+        ctx.beginPath();
         ctx.arc(r * 0.42, -r * 0.28, r * 0.14, 0, Math.PI * 2);
         ctx.fillStyle = '#222';
         ctx.fill();
@@ -122,7 +122,7 @@ function spawnPipe() {
 
 function updatePipes() {
     //add new pipe every PIPE_INTERVAL frames
-    if (frameCount % PIPE_INTERVAL === 0) {
+    if (frameCount % PIPE_INTERVAL === 0 && frameCount > 0) {
         spawnPipe();
     }
 
@@ -183,7 +183,7 @@ function drawPipes() {
 }
 
 // Collision detection
-function circleRect(cx, cy, rx, ry, rw, rh) {
+function circleRect(cx, cy, cr, rx, ry, rw, rh) {
     // Find the closest point on the rect to the circle center
     const nearX = Math.max(rx, Math.min(cx, rx + rw));
     const nearY = Math.max(ry, Math.min(cy, ry + rh));
@@ -206,8 +206,8 @@ function checkCollisions() {
         const botH = groundY - botY;
 
         if (
-            circleRect(bird.x, bird.y, p.x, 0, PIPE_WIDTH, topH) ||
-            circleRect(bird.x, bird.y, p.x, botY, PIPE_WIDTH, botH)
+            circleRect(bird.x, bird.y, br, p.x, 0, PIPE_WIDTH, topH) ||
+            circleRect(bird.x, bird.y, br, p.x, botY, PIPE_WIDTH, botH)
         ) {
             return true;
         }
@@ -236,10 +236,10 @@ function drawBackground() {
     sky.addColorStop(0.7, '#a8e0f7');
     sky.addColorStop(1, '#d0f0fd');
     ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, W, h);
+    ctx.fillRect(0, 0, w, h);
 
     //drifting clouds
-    cloudOffsset = (cloudOffset + 0.3) % BASE_W;
+    cloudOffset = (cloudOffset + 0.3) % BASE_W;
     for (let c of cloudPositions) {
         let cx = ((c.x - cloudOffset + BASE_W) % (BASE_W + 60)) * s;
         let cy = c.y * s;
@@ -272,6 +272,7 @@ function drawBackground() {
 // HUD (score on screen)
 function drawHUD() {
     const s = scale();
+    ctx.save();
     ctx.font = `bold ${28 * s}px 'Segoe UI', sans-serif`;
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
@@ -338,7 +339,7 @@ function restartGame() {
 }
 
 // Input: spacebar + mouse/touch
-document.addEeventListerner('keydown', function(e) {
+document.addEventListener('keydown', function(e) {
     if (e.code === 'Space' || e.key === ' ') {
         e.preventDefault();
         if (isRunning) bird.jump();
@@ -359,6 +360,6 @@ canvas.addEventListener('touchstart', function(e) {
 (function drawIdleFrame() {
     ctx.clearRect(0, 0 , W(), H());
     drawBackground();
-    bird.draw.y = BASE_H / 2;
+    bird.y = BASE_H / 2;
     bird.draw();
 })();
