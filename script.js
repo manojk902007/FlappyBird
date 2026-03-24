@@ -15,17 +15,44 @@ function getAudioCtx() {
     return audioCtx;
 }
 
-// Difficulty pick from start menu
-let startGap = 130;
-let startSpeed = 2.4;
-let startGravity = 0.45;
-// function getDifficulty() {
-//     const level = Math.floor(score / 5);
-//     const speed = Math.min(startSpeed + level * 0.3, 5.5);
-//     const interval = Math.max(BASE_PIPE_INTERVAL - level * 5, 55);
-//     const gap = Math.max(startGap - level * 4, 85);
-//     return { speed, interval, gap };
-// }
+// ── Difficulty — stored directly, never lost ──────────────────
+let startGap     = 130;
+let startSpeed   = 2.4;
+let startGravity = 0.35;
+
+function applyDifficulty(gap, speed, gravity) {
+    // store the values directly
+    startGap     = gap;
+    startSpeed   = speed;
+    startGravity = gravity;
+
+    // highlight matching buttons in ALL groups
+    document.querySelectorAll('.diff-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.gap) === gap);
+    });
+}
+
+// Wire up ALL diff buttons once using event delegation on the whole document
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.diff-btn');
+    if (!btn) return;
+    applyDifficulty(
+        parseInt(btn.dataset.gap),
+        parseFloat(btn.dataset.speed),
+        parseFloat(btn.dataset.gravity)
+    );
+});
+
+// Read initial values from the active button on page load
+const activeBtn = document.querySelector('.diff-btn.active');
+if (activeBtn) {
+    applyDifficulty(
+        parseInt(activeBtn.dataset.gap),
+        parseFloat(activeBtn.dataset.speed),
+        parseFloat(activeBtn.dataset.gravity)
+    );
+}
+
 function getDifficulty() {
     const level = Math.floor(score / 5);
     const speed = Math.min(startSpeed + level * 0.3, 6.5);
@@ -80,15 +107,21 @@ let score = 0;
 let bestScore = 0;
 let animFrameId = null;
 
-document.querySelectorAll('.diff-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        startGap = parseInt(btn.dataset.gap);
-        startSpeed = parseFloat(btn.dataset.speed);
-        startGravity = parseFloat(btn.dataset.gravity);
-    });
-});
+// document.querySelectorAll('.diff-btn').forEach(btn => {
+//     btn.addEventListener('click', () => {
+//         document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+//         btn.classList.add('active');
+//         startGap = parseInt(btn.dataset.gap);
+//         startSpeed = parseFloat(btn.dataset.speed);
+//         startGravity = parseFloat(btn.dataset.gravity);
+//     });
+// });
+// const activeBtn = document.querySelector(`.diff-btn.active`);
+// if (activeBtn) {
+//     startGap = parseInt(activeBtn.dataset.gap);
+//     startSpeed = parseFloat(activeBtn.dataset.speed);
+//     startGravity = parseFloat(activeBtn.dataset.gravity);
+// }
 
 // Bird object
 const bird = {
@@ -407,6 +440,9 @@ function triggerGameOver() {
 
     document.getElementById('finalScore').textContent = `Score: ${score}`;
     document.getElementById('bestScore').textContent = `Best: ${bestScore}`;
+    document.querySelectorAll('#gameOverScreen .diff-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.gap) == startGap);
+    });
     document.getElementById('gameOverScreen').classList.remove('hidden');
 }
 
