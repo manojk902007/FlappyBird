@@ -11,13 +11,34 @@
      <div id="game-wrapper">
         <!-- The actual game canvas area -->
          <canvas id="gameCanvas"></canvas>
+         
          <!-- Start screen shown before game begins -->
-          <div id="startScreen" class="overlay">
+          <!-- <div id="startScreen" class="overlay">
             <h1>Flappy Bird</h1>
             <p class="subtitle">how hard can it be?</p>
             <button id="startBtn" onclick="startGame()">Play</button>
             <p class="hint">Space / tap to flap</p>
+          </div> -->
+          <div id="startScreen" class="overlay">
+            <div class="menu-card">
+              <div class="bird-preview">🐦</div>
+              <h1>Flappy Bird</h1>
+              <p class="subtitle">how hard can it be?</p>
+              <div class="instructions">
+                <div class="instruction-row"><kbd>Space</kbd><span>or</span><kbd>Click</kbd> to flap</div>
+              </div>
+              <div class="difficulty-select">
+                <p>Pick difficulty</p>
+                <div class="diff-buttons">
+                <button class="diff-btn active" data-gap="130" data-speed="2.4" data-gravity="0.40">Easy</button>
+                <button class="diff-btn" data-gap="110" data-speed="3.0" data-gravity="0.45">Medium</button>
+                <button class="diff-btn" data-gap="85" data-speed="3.8" data-gravity="0.52">Hard</button>
+                </div>
+              </div>
+              <button id="startBtn" onclick="startGame()">Play</button>
+            </div>
           </div>
+
           <!-- Game over screen -->
            <div id="gameOverScreen" class="overlay hidden">
             <h1>Game Over</h1>

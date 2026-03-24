@@ -6,6 +6,57 @@ const ctx = canvas.getContext('2d');
 const BASE_W = 360;
 const BASE_H = 640;
 
+let audioCtx = null;
+
+function getAudioCtx() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+}
+
+// Difficulty pick from start menu
+let startGap = 130;
+let startSpeed = 2.4;
+let startGravity = 0.45;
+// function getDifficulty() {
+//     const level = Math.floor(score / 5);
+//     const speed = Math.min(startSpeed + level * 0.3, 5.5);
+//     const interval = Math.max(BASE_PIPE_INTERVAL - level * 5, 55);
+//     const gap = Math.max(startGap - level * 4, 85);
+//     return { speed, interval, gap };
+// }
+function getDifficulty() {
+    const level = Math.floor(score / 5);
+    const speed = Math.min(startSpeed + level * 0.3, 6.5);
+    const interval = Math.max(BASE_PIPE_INTERVAL - level * 5, 50);
+
+    const minGap = startGap === 130 ? 90 : startGap === 110 ? 78 : 65;
+    const gap = Math.max(startGap - level * 5, minGap);
+    return { speed, interval, gap };
+}
+
+function playSound(frequency, duration, type = 'sine', volume = 0.3) {
+    const ctx = getAudioCtx();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
+    gainNode.gain.setValueAtTime(volume, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + duration);
+}
+
+function flapSound() { playSound(520, 0.1, 'square', 0.2); }
+function scoreSound() { playSound(660, 0.15, 'sine', 0.3); }
+function deathSound() {
+    playSound(220, 0.3, 'sawtooth', 0.4);
+    setTimeout(() => playSound(159, 0.4, 'sawtooth', 0.3), 150);
+}
+
 function resizeCanvas() {
     // leave a small margin on mobile
     const maxH = window.innerHeight - 24;
@@ -29,6 +80,16 @@ let score = 0;
 let bestScore = 0;
 let animFrameId = null;
 
+document.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        startGap = parseInt(btn.dataset.gap);
+        startSpeed = parseFloat(btn.dataset.speed);
+        startGravity = parseFloat(btn.dataset.gravity);
+    });
+});
+
 // Bird object
 const bird = {
     x: 80,
@@ -41,6 +102,7 @@ const bird = {
 
     jump() {
         this.vy = this.jumpPower;
+        flapSound();
     },
 
     update() {
@@ -101,13 +163,15 @@ const bird = {
 // Pipe settings
 const GAP = 130;
 const PIPE_WIDTH = 52;
-const PIPE_SPEED = 2.4;
-const PIPE_INTERVAL = 90;
+const BASE_PIPE_SPEED    = 2.4;
+const BASE_PIPE_INTERVAL = 90;
 
 let pipes = [];
 let frameCount = 0;
 
 function spawnPipe() {
+    const {gap} = getDifficulty();
+
     // random Y for the gap centre, keeping it away from the edges
     const minGapCenter = 120;
     const maxGapCenter = BASE_H - 120 - 60;
@@ -116,23 +180,27 @@ function spawnPipe() {
     pipes.push({
         x: BASE_W + 10,
         gapCenter: gapCenter,
+        gap: gap,
         scored: false
     });
 }
 
 function updatePipes() {
+    const {speed, interval} = getDifficulty();
+
     //add new pipe every PIPE_INTERVAL frames
-    if (frameCount % PIPE_INTERVAL === 0 && frameCount > 0) {
+    if (frameCount % interval === 0 && frameCount > 0) {
         spawnPipe();
     }
 
     for(let p of pipes) {
-        p.x -= PIPE_SPEED;
+        p.x -= speed;
 
         //score: bird passed the pipe's right edge
         if (!p.scored && p.x + PIPE_WIDTH < bird.x) {
             score++;
             p.scored = true;
+            scoreSound();
         }
     }
 
@@ -170,8 +238,8 @@ function drawPipes() {
     const groundY = BASE_H -60;
 
     for (let p of pipes) {
-        const topH = p.gapCenter - GAP / 2;
-        const botY = p.gapCenter + GAP / 2;
+        const topH = p.gapCenter - p.gap / 2;
+        const botY = p.gapCenter + p.gap / 2;
         const botH = groundY - botY;
 
         // top pipe (flipped)
@@ -201,8 +269,8 @@ function checkCollisions() {
 
     // hit a pipe
     for (let p of pipes) {
-        const topH = p.gapCenter - GAP / 2;
-        const botY = p.gapCenter + GAP / 2;
+        const topH = p.gapCenter - p.gap / 2;
+        const botY = p.gapCenter + p.gap / 2;
         const botH = groundY - botY;
 
         if (
@@ -279,6 +347,12 @@ function drawHUD() {
     ctx.shadowColor = 'rgba(0,0,0,0.45)';
     ctx.shadowBlur = 6 * s;
     ctx.fillText(score, W() / 2, 52 * s);
+
+    const level = Math.floor(score / 5) + 1;
+    ctx.font = `${13 * s}px 'Segoe UI', sans-serif`;
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fillText(`LVL ${level}`, W() / 2, 70 * s);
+    
     ctx.restore();
 }
 
@@ -311,6 +385,7 @@ function startGame() {
     bird.x = 80;
     bird.y = BASE_H / 2;
     bird.vy = 0;
+    bird.gravity = startGravity;
     pipes = [];
     score = 0;
     frameCount = 0;
@@ -326,6 +401,7 @@ function startGame() {
 function triggerGameOver() {
     isRunning = false;
     gameOver = true;
+    deathSound();
 
     if (score > bestScore) bestScore = score;
 

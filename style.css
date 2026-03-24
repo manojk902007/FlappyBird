@@ -112,3 +112,96 @@ button:active {
         width: 100vw;
     }
 }
+
+/* ── Start menu card ─────────────────────────────── */
+.menu-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 88%;
+}
+
+.bird-preview {
+  font-size: 3.5rem;
+  animation: bob 1.2s ease-in-out infinite;
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0);    }
+  50%       { transform: translateY(-10px); }
+}
+
+.instructions {
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 8px 20px;
+  width: 100%;
+  text-align: center;
+}
+
+.instruction-row {
+  color: #c8e0ff;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+kbd {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.85rem;
+  color: #fff;
+}
+
+/* ── Difficulty selector ─────────────────────────── */
+.difficulty-select {
+  width: 100%;
+  text-align: center;
+}
+
+.difficulty-select p {
+  color: #aac8ff;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.diff-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.diff-btn {
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: none;
+  margin: 0;
+}
+
+.diff-btn.active {
+  background: linear-gradient(135deg, #ffe066, #ffc200);
+  color: #1a1a2e;
+  border-color: transparent;
+}
+
+.diff-btn.active:hover {
+  box-shadow: none;
+  transform: scale(1.05);
+}
+
+.diff-btn:hover {
+  transform: scale(1.05);
+  box-shadow: none;
+}
